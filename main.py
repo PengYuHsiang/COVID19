@@ -61,6 +61,8 @@ class COVID19:
 		data = [[val.text for val in record.find_all('td')[:-1]] for record in table.find_all('tr')]
 		col = ['洲','國家','確診數','死亡數']
 		data = pd.DataFrame(data[1:-1],columns=col).set_index('國家')
+		if 'Other' in data.index:
+			data.drop('Other',inplace=True)
 		data.index = [country.replace('_',' ') for country in data.index]
 		data.index = [self.country_name1[country] if country in self.country_name1.keys() else country for country in data.index]
 		for col in ('確診數','死亡數'):
@@ -106,6 +108,14 @@ class COVID19:
 		summary.drop('China',inplace=True)
 		summary.sort_values('洲',inplace=True)
 
+		# 從亞洲國家中區分出中東地區
+		Eastern_Asia = ('Israel','UAE','Egypt','Iran','Lebanon','Cyprus','Palestine','Iraq','Kuwait','Oman','Bahrain','Azerbaijan'
+						,'Qatar','Saudi Arabia','Jordan','Turkey','Uzbekistan','Kyrgyzstan','Syria')
+		for country in summary.index:
+			if country in Eastern_Asia:
+				summary.loc[country,'洲'] = 'Eastern Mediterranean'
+		summary.sort_values('洲',inplace=True)
+
 		col = [(item,resource) for item in ('確診數','死亡數','治癒數') for resource in ('ecdc','worldometers','nCov2019')]
 		col.remove(('治癒數','ecdc'))
 		col.insert(0,('洲','Continent'))
@@ -143,4 +153,3 @@ if __name__ == "__main__":
 	country3 = set(data.data3.index)
 	result = country1.intersection(country2,country3)
 	summary = data.summary
-
