@@ -41,7 +41,7 @@ class COVID19:
 		soup = self.parse_data(url)
 		table = soup.find('table',attrs={'id':'main_table_countries_today'})
 		col = ['國家','確診數','新增案例數','死亡數','新增死亡數','治癒數','未治癒數','重症數']
-		record = [[j.text.strip() for j in i.find_all('td')[:-2]] for i in table.find_all('tr')[1:-1]]
+		record = [[j.text.strip() for j in i.find_all('td')[:-3]] for i in table.find_all('tr')[1:-1]]
 		data = pd.DataFrame(record,columns=col).set_index('國家')
 		# 數值處理		
 		func = lambda x:''.join(x.split('+')[-1].split(','))
@@ -61,6 +61,8 @@ class COVID19:
 		data = [[val.text for val in record.find_all('td')[:-1]] for record in table.find_all('tr')]
 		col = ['洲','國家','確診數','死亡數']
 		data = pd.DataFrame(data[1:-1],columns=col).set_index('國家')
+		data = data.replace('\xa0',np.nan)
+		data.fillna(method='ffill',inplace=True)
 		if 'Other' in data.index:
 			data.drop('Other',inplace=True)
 		data.index = [country.replace('_',' ') for country in data.index]
