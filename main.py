@@ -39,14 +39,14 @@ class COVID19:
 	def worldometers(self):	# 資料來源 worldometers
 		url = 'https://www.worldometers.info/coronavirus/'
 		soup = self.parse_data(url)
-		table = soup.find('table',attrs={'id':'main_table_countries_today'})
+		table = soup.find('table',attrs={'id':'main_table_countries_today'}).find('tbody')
 		col = ['國家','確診數','新增案例數','死亡數','新增死亡數','治癒數','未治癒數','重症數']
-		record = [[j.text.strip() for j in i.find_all('td')[:8]] for i in table.find_all('tr')[1:-1]]
+		record = [[j.text.strip() for j in i.find_all('td')[:8]] for i in table.find_all('tr')[8:-1]]
 		data = pd.DataFrame(record,columns=col).set_index('國家')
 		# 數值處理		
 		func = lambda x:''.join(x.split('+')[-1].split(','))
 		data = data.applymap(func)
-		data.replace({'':np.nan},inplace=True)
+		data.replace({'':np.nan,'N/A':np.nan},inplace=True)
 		data.fillna(0,inplace=True)
 		data = data.applymap(int)
 		# 寫入 worksheet
@@ -107,7 +107,7 @@ class COVID19:
 
 		summary = pd.merge(summary1,summary2,left_index=True,right_index=True)
 		summary = pd.merge(summary,summary3,left_index=True,right_index=True)
-		summary.drop('China',inplace=True)
+		# summary.drop('China',inplace=True)
 		summary.sort_values('洲',inplace=True)
 
 		# 從亞洲國家中區分出中東地區
