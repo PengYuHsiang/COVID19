@@ -77,10 +77,10 @@ class COVID19:
 	def nCov2019(self):
 		url = 'https://ncov2019.live/data'
 		soup = self.parse_data(url)
-		table = soup.find('table',attrs={'id':'sortable_table_global'})
+		table = soup.find('table',attrs={'id':'sortable_table_world'})
 		record = [list(record.stripped_strings)[1:] for record in table.find_all('tr')]
-		data = pd.DataFrame(record[2:]).drop([3,6],axis=1)
-		data.columns = ['國家','確診數','新增案例數','死亡數','新增死亡數','治癒數','重症數']
+		data = pd.DataFrame(record[2:]).drop([3,7],axis=1)
+		data.columns = ['國家','確診數','新增案例數','重症數','死亡數','新增死亡數','治癒數','未治癒數']
 		data.fillna(0,inplace=True)
 		data.set_index('國家',inplace=True)
 		data.index = [self.country_name2[country] if country in self.country_name2.keys() else country for country in data.index]
