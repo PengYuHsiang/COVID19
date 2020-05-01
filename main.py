@@ -60,7 +60,7 @@ class COVID19:
 		table = soup.find('table')
 		data = [[val.text for val in record.find_all('td')[:-1]] for record in table.find_all('tr')]
 		col = ['洲','國家','確診數','死亡數']
-		data = pd.DataFrame(data[1:-1],columns=col).set_index('國家')
+		data = pd.DataFrame(data[1:-2],columns=col).set_index('國家')
 		data = data.replace('\xa0',np.nan)
 		data.fillna(method='ffill',inplace=True)
 		if 'Other' in data.index:
