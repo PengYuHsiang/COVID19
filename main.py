@@ -157,26 +157,3 @@ if __name__ == "__main__":
 	country3 = set(data.data3.index)
 	result = country1.intersection(country2,country3)
 	summary = data.summary
-
-
-# import requests
-# import pandas as pd
-# from bs4 import BeautifulSoup
-
-# url = 'https://opendata.ecdc.europa.eu/covid19/casedistribution/json/'
-# resp = requests.get(url).json()['records']
-
-# data = pd.DataFrame(resp).set_index('continentExp')
-# stat_col = ['cases','deaths']
-# for col in stat_col:
-# 	data[col] = data[col].apply(int)
-
-# df = data.groupby('countriesAndTerritories').sum()[stat_col]
-# country_info = data['countriesAndTerritories'].drop_duplicates()
-# df = pd.merge(df,country_info,how='left',left_index=True,right_on='countriesAndTerritories')
-# df.columns = ['確診數','死亡數','國家']
-# df.insert(0,'州',df.index)
-# df.set_index('國家',inplace=True)
-# df.sort_values('確診數',ascending=False,inplace=True)
-
-
