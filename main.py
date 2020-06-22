@@ -17,6 +17,7 @@ class COVID19:
 		self.data2 = self.ecdc()
 		self.data3 = self.nCov2019()
 		self.summary = self.Summarize_Data()
+		self.USA_COVID()
 		self.Output_Summary()
 		self.workbook.save('COVID19.xlsx')
 
@@ -144,6 +145,53 @@ class COVID19:
 		for row,record in enumerate(self.summary.values):
 			for col,val in enumerate(record):
 				ws[chr(66+col)+str(3+row)] = val
+
+	def USA_COVID(self):
+		# 資料源一: nCov2019
+		url1 = 'https://ncov2019.live/data'
+		soup = self.parse_data(url1)
+		table = soup.find('table',attrs={'id':'sortable_table_unitedstates'})
+		record = [list(record.stripped_strings)[1:] for record in table.find_all('tr')]
+		data1 = pd.DataFrame(record[2:])[[0,1,5,10]]
+		data1 = data1.applymap(lambda x: x.replace(',',''))
+		data1.columns = ['地區','確診數','死亡數','治癒數']
+		data1['確診數'] = data1['確診數'].apply(int)
+		data1.sort_values('確診數',ascending=False,inplace=True)
+
+		# 資料源二: worldmeters
+		url2 = 'https://www.worldometers.info/coronavirus/country/us/'
+		soup = self.parse_data(url2)
+		table = soup.find('table',attrs={'id':'usa_table_countries_today'})
+		record = [[val.text for val in record.find_all('td')] for record in table.find_all('tr')]
+		data2 = pd.DataFrame(record[2:-1])[[0,1,3,5]]
+		data2 = data2.applymap(lambda x: x.replace('\n',''))
+		for i in (1,3,5):
+			data2[i] = data2[i].apply(lambda x: x.replace(',',''))
+			data2[i] = data2[i].replace('',0)
+			data2[i] = data2[i].apply(int)
+		data2.columns = ['地區','確診數','死亡數','未治癒數']
+		data2['治癒數'] = data2['確診數']-data2['死亡數']-data2['未治癒數']
+		del data2['未治癒數']
+		data2.sort_values('確診數',ascending=False,inplace=True)
+		
+		# 寫入 worksheet
+		ws = self.workbook.create_sheet('USA_stats')
+		dt = {'B1:E1':'nCov2019','G1:J1':'worldmeters'}
+		for area,resource in dt.items():
+			ws.merge_cells(area)
+			locate = area.split(':')[0]
+			ws[locate] = resource
+			ws[locate].alignment = Alignment(vertical='center',horizontal='center')
+		for i in range(15):
+			ws['A'+str(3+i)] = i+1
+			ws['A'+str(3+i)].alignment = Alignment(vertical='center',horizontal='center')
+		for i,data in enumerate([data1,data2]):
+			data = data.head(15)
+			for num,col_name in enumerate(['地區','確診數','死亡數','治癒數']):
+				ws[chr(66+num+i*5)+'2'] = col_name
+			for row,record in enumerate(data.values):
+				for col,val in enumerate(record):
+					ws[chr(66+col+i*5)+str(3+row)] = val
 
 
 if __name__ == "__main__":
