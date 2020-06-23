@@ -11,6 +11,7 @@ class COVID19:
 	def __init__(self):
 		self.date = datetime.today().strftime('%Y/%m/%d %H:%M:%S')
 		self.workbook = Workbook()
+		self.alignment = Alignment(vertical='center',horizontal='center')
 		self.country_name1 = json.load(open('dt1.json'))
 		self.country_name2 = json.load(open('dt2.json'))
 		self.data1 = self.worldometers()
@@ -133,7 +134,7 @@ class COVID19:
 		column = {'B1':'洲','C1':'確診數','F1':'死亡數','I1':'治癒數'}
 		for cell,col in column.items():
 			ws[cell] = col
-			ws[cell].alignment = Alignment(vertical='center',horizontal='center')
+			ws[cell].alignment = self.alignment
 
 		column = [resource for _ in range(2) for resource in ('ecdc','worldometers','nCov2019')]
 		column += ['worldometers','eCov2019']
@@ -181,10 +182,10 @@ class COVID19:
 			ws.merge_cells(area)
 			locate = area.split(':')[0]
 			ws[locate] = resource
-			ws[locate].alignment = Alignment(vertical='center',horizontal='center')
+			ws[locate].alignment = self.alignment
 		for i in range(15):
 			ws['A'+str(3+i)] = i+1
-			ws['A'+str(3+i)].alignment = Alignment(vertical='center',horizontal='center')
+			ws['A'+str(3+i)].alignment = self.alignment
 		for i,data in enumerate([data1,data2]):
 			data = data.head(15)
 			for num,col_name in enumerate(['地區','確診數','死亡數','治癒數']):
@@ -192,6 +193,9 @@ class COVID19:
 			for row,record in enumerate(data.values):
 				for col,val in enumerate(record):
 					ws[chr(66+col+i*5)+str(3+row)] = val
+
+		sheet = self.workbook['Sheet']
+		self.workbook.remove(sheet)
 
 
 if __name__ == "__main__":
