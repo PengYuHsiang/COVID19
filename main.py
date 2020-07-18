@@ -57,21 +57,22 @@ class COVID19:
 		return data
 
 	def ecdc(self):
-		url = 'https://www.ecdc.europa.eu/en/geographical-distribution-2019-ncov-cases'
-		soup = self.parse_data(url)
-		table = soup.find('table')
-		data = [[val.text for val in record.find_all('td')[:-1]] for record in table.find_all('tr')]
-		col = ['洲','國家','確診數','死亡數']
-		data = pd.DataFrame(data[1:-2],columns=col).set_index('國家')
-		data = data.replace('\xa0',np.nan)
-		data.fillna(method='ffill',inplace=True)
-		if 'Other' in data.index:
-			data.drop('Other',inplace=True)
+		url = 'https://opendata.ecdc.europa.eu/covid19/casedistribution/json/'
+		resp = requests.get(url).json()['records']
+		raw_data = pd.DataFrame(resp).set_index('continentExp')
+		stat_col = ['cases','deaths']
+		for col in stat_col:
+			raw_data[col] = raw_data[col].apply(int)
+		df = raw_data.groupby('countriesAndTerritories').sum()[stat_col]
+		country_info = raw_data['countriesAndTerritories'].drop_duplicates()
+		data = pd.merge(df,country_info,how='left',left_index=True,right_on='countriesAndTerritories')
+		data.columns = ['確診數','死亡數','國家']
+
+		data.insert(0,'洲',data.index)
+		data.set_index('國家',inplace=True)
+		data.sort_values('確診數',ascending=False,inplace=True)
 		data.index = [country.replace('_',' ') for country in data.index]
 		data.index = [self.country_name1[country] if country in self.country_name1.keys() else country for country in data.index]
-		for col in ('確診數','死亡數'):
-			data[col] = data[col].apply(int)
-		# 寫入 worksheet
 		ws = self.workbook.create_sheet('ecdc')
 		self.write_in_excel(data,ws)
 		return data
