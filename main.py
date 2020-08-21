@@ -82,7 +82,7 @@ class COVID19:
 		soup = self.parse_data(url)
 		table = soup.find('table',attrs={'id':'sortable_table_world'})
 		record = [list(record.stripped_strings)[1:] for record in table.find_all('tr')]
-		data = pd.DataFrame(record[2:]).drop([3,4,7,8],axis=1)
+		data = pd.DataFrame(record[2:]).drop([2,4,5,7,8,9,10,13],axis=1)
 		data.columns = ['國家','確診數','新增案例數','死亡數','新增死亡數','未治癒數','治癒數']
 		data.replace('Unknown',np.nan,inplace=True)
 		data.fillna(0,inplace=True)
@@ -154,7 +154,7 @@ class COVID19:
 		soup = self.parse_data(url1)
 		table = soup.find('table',attrs={'id':'sortable_table_unitedstates'})
 		record = [list(record.stripped_strings)[1:] for record in table.find_all('tr')]
-		data1 = pd.DataFrame(record[2:])[[0,1,5,10]]
+		data1 = pd.DataFrame(record[2:])[[0,1,6,12]]
 		data1 = data1.applymap(lambda x: x.replace(',',''))
 		data1.columns = ['地區','確診數','死亡數','治癒數']
 		data1['確診數'] = data1['確診數'].apply(int)
